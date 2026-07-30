@@ -330,7 +330,7 @@ function cardHTML(p){
   const d=discount(p);
   const frames=(p.images&&p.images.length)
     ? p.images.map(src=>`<div class="frame"><img src="${src}" alt="${p.name}" loading="lazy"></div>`).join("")
-    : `<div class="frame"><img class="auto" src="images/${encodeURIComponent(p.id)}.jpg" alt="${p.name}" loading="lazy"></div>`;
+    : `<div class="frame"><img class="auto" data-pid="${encodeURIComponent(p.id)}" data-i="0" src="images/${encodeURIComponent(p.id)}.jpg" alt="${p.name}" loading="lazy"></div>`;
   const dots=(p.images&&p.images.length>1)
     ? `<div class="dots">${p.images.map((_,i)=>`<i class="${i===0?"on":""}"></i>`).join("")}</div>`:"";
   const pick = realClicks(p)>0 ? `<span class="hotpick">🔥 Popular</span>`
@@ -350,10 +350,51 @@ function cardHTML(p){
 }
 
 function bindCard(el){
+  const AUTO_EXTS=["jpg","jpeg","png","webp","JPG","JPEG","PNG"];
+  function hunt(base,cb){ // tries base.jpg, base.jpeg, ... calls cb(src|null)
+    let i=0;const t=new Image();
+    t.onload=()=>cb(t.src);
+    t.onerror=()=>{i++; if(i<AUTO_EXTS.length) t.src=base+"."+AUTO_EXTS[i]; else cb(null)};
+    t.src=base+"."+AUTO_EXTS[0];
+  }
   el.querySelectorAll("img.auto").forEach(img=>{
-    const fail=()=>{img.closest(".frame").innerHTML='<span class="ph">Photo coming soon</span>'};
+    const pid=img.dataset.pid;
+    const framesEl=img.closest(".frames"), gallery=img.closest(".gallery");
+    const fail=()=>{
+      let i=parseInt(img.dataset.i||"0")+1;
+      if(i<AUTO_EXTS.length){
+        img.dataset.i=i;
+        img.src="images/"+pid+"."+AUTO_EXTS[i];
+      }else{
+        img.closest(".frame").innerHTML='<span class="ph">Photo coming soon</span>';
+      }
+    };
+    const refreshDots=()=>{
+      const count=framesEl.children.length;
+      if(count<2) return;
+      let dots=gallery.querySelector(".dots");
+      if(!dots){dots=document.createElement("div");dots.className="dots";gallery.appendChild(dots);}
+      dots.innerHTML=Array.from({length:count},(_,j)=>`<i class="${j===0?"on":""}"></i>`).join("");
+      framesEl.addEventListener("scroll",()=>{
+        const k=Math.round(framesEl.scrollLeft/framesEl.clientWidth);
+        dots.querySelectorAll("i").forEach((d,j)=>d.classList.toggle("on",j===k));
+      },{passive:true});
+    };
+    const addExtras=n=>{
+      if(n>4){refreshDots();return;}
+      hunt("images/"+pid+"-"+n,src=>{
+        if(!src){refreshDots();return;}
+        const f=document.createElement("div");
+        f.className="frame";
+        f.innerHTML=`<img src="${src}" alt="" loading="lazy">`;
+        framesEl.appendChild(f);
+        addExtras(n+1);
+      });
+    };
+    img.onload=()=>{ if(!img.dataset.done){img.dataset.done="1";addExtras(2);} };
     img.onerror=fail;
     if(img.complete&&img.naturalWidth===0) fail();
+    else if(img.complete&&img.naturalWidth>0&&!img.dataset.done){img.dataset.done="1";addExtras(2);}
   });
   const frames=el.querySelector(".frames"), dots=el.querySelectorAll(".dots i");
   if(frames&&dots.length){
@@ -364,6 +405,15 @@ function bindCard(el){
   }
   const buy=el.querySelector(".buy");
   buy.addEventListener("click",()=>{trackClick(buy.dataset.id);setTimeout(render,400)});
+  const gal=el.querySelector(".gallery");
+  if(gal&&buy.getAttribute("href")&&buy.getAttribute("href")!=="#"){
+    gal.style.cursor="pointer";
+    gal.addEventListener("click",()=>{
+      trackClick(buy.dataset.id);
+      window.open(buy.href,"_blank","noopener");
+      setTimeout(render,400);
+    });
+  }
 }
 
 function renderNav(){
