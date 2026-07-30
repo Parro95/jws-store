@@ -1,1 +1,467 @@
-Product photos live here. Name each photo after its product id from products.xlsx: p1.jpg, p2.jpg, p3.jpg ...
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWS Store — Shop Everything | Journey With Shannon</title>
+<meta name="description" content="Shannon's product library — tech, home, fitness and more. Every product links straight to Amazon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#131921; --navy2:#232F3E;
+    --orange:#FF9900; --yellow:#FFD814; --yellow2:#F7CA00;
+    --deal:#CC0C39; --star:#DE7921; --teal:#007185;
+    --bg:#FFFFFF; --panel:#F7F8F8;
+    --ink:#0F1111; --muted:#565959; --line:#D5D9D9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto} *{transition:none!important;animation:none!important}}
+  body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;line-height:1.45;padding-bottom:110px}
+  button{font-family:inherit;cursor:pointer}
+
+  /* ---------- HEADER ---------- */
+  .topbar{background:var(--navy);position:sticky;top:0;z-index:60;padding:10px 12px;display:flex;align-items:center;gap:10px}
+  .logo{color:#fff;font-weight:800;font-size:18px;white-space:nowrap}
+  .logo span{color:var(--orange)}
+  .search{flex:1;display:flex;background:#fff;border-radius:24px;overflow:hidden}
+  .search input{flex:1;min-width:0;border:none;padding:11px 16px;font-size:15px;font-family:inherit;color:var(--ink)}
+  .search input:focus{outline:none}
+  .search button{background:none;border:none;padding:0 14px;font-size:16px}
+
+  /* ---------- TABS ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:56px;z-index:55;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{background:none;border:none;padding:13px 16px;font-size:15.5px;font-weight:600;color:var(--ink);white-space:nowrap;border-bottom:3px solid transparent}
+  .tabs button.on{color:var(--teal);border-bottom-color:var(--teal)}
+
+  /* ---------- FILTER PILLS ---------- */
+  .pills{display:flex;gap:8px;padding:12px 12px 4px;overflow-x:auto;scrollbar-width:none}
+  .pills::-webkit-scrollbar{display:none}
+  .pill{background:#fff;border:1px solid #888C8C;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .pill.on{background:#E7F4F5;border-color:var(--teal);color:var(--teal);font-weight:700}
+  .pill .chev{font-size:11px}
+
+  /* filter sheet */
+  .sheet{position:fixed;left:8px;right:8px;top:150px;background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(15,17,17,.28);z-index:70;padding:18px;display:none}
+  .sheet.show{display:block}
+  .sheet h3{font-size:17px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between}
+  .sheet h3 button{background:none;border:none;font-size:18px}
+  .sheet .opts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .sheet .opts button{background:#fff;border:1px solid #888C8C;border-radius:8px;padding:9px 14px;font-size:14px}
+  .sheet .opts button.on{background:#E7F4F5;border-color:var(--teal);color:var(--teal);font-weight:700}
+  .apply{background:#7EAAB5;color:#fff;border:none;border-radius:22px;padding:11px 26px;font-size:15px;font-weight:700}
+  .clear{background:none;border:none;color:var(--muted);font-size:15px;margin-left:14px}
+  .sheet-scrim{position:fixed;inset:0;background:rgba(15,17,17,.3);z-index:65;display:none}
+  .sheet-scrim.show{display:block}
+
+  /* ---------- SECTION ---------- */
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;padding:12px 12px 4px}
+  .section-head h2{font-size:17px;font-weight:800}
+  .section-head span{font-size:12px;color:var(--muted)}
+
+  /* ---------- GRID / CARDS (Amazon parity) ---------- */
+  .gridwrap{max-width:1220px;margin:0 auto;width:100%}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--line);border-top:1px solid var(--line)}
+  @media(min-width:760px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px;background:none;border-top:none;padding:4px 14px 10px}
+    .card{border:1px solid var(--line);border-radius:8px}
+    .card:hover{box-shadow:0 4px 14px rgba(15,17,17,.12)}
+  }
+  .ph{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#B8BCBC}
+  .card{background:#fff;padding:12px 12px 16px;display:flex;flex-direction:column;position:relative}
+  .gallery{position:relative;aspect-ratio:1/1;background:var(--panel);border-radius:8px;margin-bottom:10px;overflow:hidden}
+  .frames{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .frames::-webkit-scrollbar{display:none}
+  .frame{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;font-size:42px}
+  .frame img{width:100%;height:100%;object-fit:contain}
+  .dots{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+  .dots i{width:6px;height:6px;border-radius:50%;background:rgba(15,17,17,.2)}
+  .dots i.on{background:var(--star)}
+  .hotpick{position:absolute;top:8px;left:8px;background:var(--navy);color:#fff;font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:4px}
+
+  .card h4{font-size:14.5px;font-weight:400;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .stars{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:13px}
+  .stars .s{color:var(--star);letter-spacing:1px}
+  .stars .n{color:var(--teal)}
+  .social{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .dealbadge{display:inline-block;background:var(--deal);color:#fff;font-size:11.5px;font-weight:700;padding:4px 8px;border-radius:3px;margin-top:8px;width:fit-content}
+  .price-row{display:flex;align-items:flex-start;gap:8px;margin-top:6px}
+  .pct{color:var(--deal);font-size:19px;font-weight:500}
+  .price{font-size:14px;font-weight:500;line-height:1}
+  .price b{font-size:23px;font-weight:600}
+  .price sup{font-size:12px;font-weight:600;top:-8px;position:relative}
+  .rrp{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .rrp s{margin-left:3px}
+  .asof{font-size:10px;color:var(--muted);margin-top:2px}
+  .delivery{font-size:12.5px;margin-top:6px}
+  .delivery b{font-weight:700}
+  .buy{margin-top:12px;display:block;text-align:center;text-decoration:none;background:var(--yellow);color:var(--ink);font-weight:600;font-size:14px;padding:11px 8px;border-radius:24px;transition:background .15s ease}
+  .buy:hover{background:var(--yellow2)}
+  .buy:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+
+  .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px}
+  .disclosure{font-size:11.5px;color:var(--muted);padding:10px 12px 0}
+
+  /* ---------- CATEGORY DRAWER ---------- */
+  .drawer{position:fixed;top:0;left:0;bottom:0;z-index:100;width:290px;background:#fff;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto}
+  .drawer.open{transform:translateX(0)}
+  .drawer h3{background:var(--navy2);color:#fff;padding:18px;font-size:16px}
+  .drawer button{display:flex;justify-content:space-between;width:100%;background:none;border:none;border-bottom:1px solid #EEE;text-align:left;padding:14px 18px;font-size:15px;color:var(--ink)}
+  .drawer button.active{background:#FEF3E2;font-weight:700;box-shadow:inset 3px 0 0 var(--orange)}
+  .drawer .count{color:var(--muted);font-size:12px}
+  .drawer-scrim{position:fixed;inset:0;background:rgba(15,17,17,.55);z-index:99;opacity:0;pointer-events:none;transition:opacity .25s ease}
+  .drawer-scrim.show{opacity:1;pointer-events:auto}
+
+  /* ---------- BOTTOM NAV ---------- */
+  /* ---------- FLOATING BAR (MyFitnessPal-style, mobile only) ---------- */
+  .bottomnav{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:80;
+    background:var(--navy);border-radius:32px;display:flex;align-items:center;
+    padding:10px 6px;box-shadow:0 10px 28px rgba(15,17,17,.35)}
+  .bottomnav button{flex:1;background:none;border:none;font-size:10.5px;font-weight:600;color:#D8DCDC;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .bottomnav .ic{font-size:20px;line-height:1}
+  .bottomnav .fab{flex:0 0 62px;margin-top:-30px}
+  .bottomnav .fab .circle{width:58px;height:58px;border-radius:50%;background:var(--orange);
+    display:flex;align-items:center;justify-content:center;font-size:24px;
+    box-shadow:0 6px 18px rgba(255,153,0,.45);border:4px solid #fff;color:var(--navy)}
+  .bottomnav .fab span:not(.circle){display:none}
+  @media(min-width:821px){.bottomnav{display:none} body{padding-bottom:0}}
+
+  footer{background:var(--navy);color:#fff}
+  .foot-inner{padding:24px 14px 32px;font-size:12px;line-height:1.7;opacity:.85}
+  .foot-inner b{color:var(--orange)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">JWS<span>store</span></div>
+  <div class="search">
+    <input type="search" id="searchBox" placeholder="Search JWSstore" aria-label="Search products">
+    <button aria-label="Search">🔍</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Browse">
+  <button data-tab="foryou" class="on">For you</button>
+  <button data-tab="best">Best Sellers</button>
+  <button data-tab="deals">Deals</button>
+  <button data-tab="new">New in</button>
+</nav>
+
+<div class="pills">
+  <button class="pill" id="pillCat">☰ Categories</button>
+  <button class="pill" id="pillPrice">Price ($) <span class="chev">▼</span></button>
+</div>
+
+<div class="sheet-scrim" id="sheetScrim"></div>
+<div class="sheet" id="priceSheet" role="dialog" aria-label="Price filter">
+  <h3>Price ($) <button id="sheetClose" aria-label="Close">✕</button></h3>
+  <div class="opts" id="priceOpts">
+    <button data-min="0" data-max="25">Up to $25</button>
+    <button data-min="25" data-max="50">$25 to $50</button>
+    <button data-min="50" data-max="100">$50 to $100</button>
+    <button data-min="100" data-max="999999">$100 &amp; above</button>
+  </div>
+  <button class="apply" id="sheetApply">Show results</button>
+  <button class="clear" id="sheetClear">Clear filters</button>
+</div>
+
+<div class="gridwrap">
+<p class="disclosure">As an Amazon Associate I earn from qualifying purchases.</p>
+
+<div class="section-head">
+  <h2 id="sectionTitle">For you</h2>
+  <span id="sectionCount"></span>
+</div>
+<div class="grid" id="grid"></div>
+<div class="empty" id="empty" hidden></div>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="Categories">
+  <h3>Shop by category</h3>
+  <div id="navList"></div>
+</aside>
+<div class="drawer-scrim" id="drawerScrim"></div>
+
+<nav class="bottomnav" aria-label="Site">
+  <button onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="ic">🏠</span>Home</button>
+  <button id="navCats"><span class="ic">☰</span>Categories</button>
+  <button class="fab" id="navSearch" aria-label="Search"><span class="circle">🔍</span></button>
+  <button id="navDeals"><span class="ic">🏷️</span>Deals</button>
+  <button id="navTop"><span class="ic">🔥</span>Popular</button>
+</nav>
+
+<footer>
+  <div class="foot-inner">
+    <b>JWSstore</b> · Journey With Shannon<br>
+    As an Amazon Associate I earn from qualifying purchases. This site is not owned, operated, or endorsed by Amazon; product links open on Amazon where current prices and availability are shown. Any prices, ratings, or purchase figures displayed here are indicative only, accurate as at the date noted, and subject to change — always check the Amazon listing for today's details.<br><br>
+    Amazon and all related marks are trademarks of Amazon.com, Inc. or its affiliates.<br><br>
+    <b>Privacy:</b> This site does not collect, store, or share any personal information. A small counter is saved in your own browser (never sent anywhere) to sort products you tap on. Amazon's own privacy notice applies once you click through to Amazon.
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+   AFFILIATE TAG — auto-attached to every Amazon link
+================================================================ */
+const AFFILIATE_TAG = "journeywith04-22";
+
+/* ================================================================
+   PRODUCT LIBRARY — one entry per product.
+   Required: id (unique, keep stable), cat, name, url
+   Optional:
+     rating   — 4.7            (star row; only use the REAL current figure)
+     reviews  — 2413           (review count next to stars)
+     social   — "500+ bought in past month"  (copy the real line or omit)
+     deal     — true           (red "Limited time deal" badge)
+     price    — 22.09          (big price, small cents)
+     was      — 25.99          (RRP strikethrough + red -% auto-calc)
+     asof     — "30 Jul"       (date you checked price/rating — keep fresh)
+     delivery — "FREE delivery for Prime members"  (omit if unsure)
+     images   — ["images/a.jpg"]  (your OWN photos only — never saved
+                                   from Amazon listings)
+     icon     — emoji placeholder until you have a photo
+     boost    — 50             (manual head start; shows ⭐ JWS Pick)
+   COMPLIANCE: ratings/social/prices must be real, current figures —
+   update the asof date whenever you refresh them, or leave them out.
+================================================================ */
+/* ================================================================
+   IMPORTS — the site ships with structure only. Products load from
+   the first import that exists, in this order:
+     1. API      → GET /api/products  (Netlify function, added when
+                   Amazon Creators API access unlocks)
+     2. Spreadsheet → products.xlsx uploaded next to this file
+                   (fill the JWSstore import template, drop it in
+                   the deploy zip — headers must not be renamed)
+   If neither exists, the store shows the empty state.
+================================================================ */
+let PRODUCTS = [];
+
+const XLSX_HEADERS = ["id","category","name","url","note","rating","reviews","social","deal","price","was","asof","delivery","image1","image2","image3","icon","boost"];
+
+function asofText(v){
+  if(v==null||v==="") return "";
+  if(typeof v==="number"){ // Excel stores typed dates as serial numbers
+    const d=new Date(Date.UTC(1899,11,30)+v*86400000);
+    return d.getUTCDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()];
+  }
+  return String(v);
+}
+
+function rowToProduct(r){
+  if(!r.name || !r.category) return null;
+  const images=[r.image1,r.image2,r.image3].filter(Boolean);
+  return {
+    id:String(r.id||r.name).trim(), cat:String(r.category).trim(), name:String(r.name).trim(),
+    url:r.url?String(r.url).trim():"#", note:r.note||"",
+    rating:r.rating?parseFloat(r.rating):null, reviews:r.reviews?parseInt(r.reviews):null,
+    social:r.social||"", deal:/^(y|yes|true|1)$/i.test(String(r.deal||"")),
+    price:r.price!==""&&r.price!=null?parseFloat(r.price):null,
+    was:r.was!==""&&r.was!=null?parseFloat(r.was):null,
+    asof:asofText(r.asof), delivery:r.delivery||"",
+    images:images.length?images:null, icon:r.icon||"📦",
+    boost:r.boost?parseInt(r.boost):0
+  };
+}
+
+async function loadFromAPI(){
+  const r=await fetch("/api/products",{headers:{Accept:"application/json"}});
+  if(!r.ok) throw 0;
+  const data=await r.json();
+  if(!Array.isArray(data)||!data.length) throw 0;
+  return data.map(rowToProduct).filter(Boolean);
+}
+
+async function loadFromSpreadsheet(){
+  const r=await fetch("products.xlsx?v="+Date.now(),{cache:"no-store"});
+  if(!r.ok) throw 0;
+  const buf=await r.arrayBuffer();
+  await new Promise((res,rej)=>{               // lazy-load SheetJS only when a spreadsheet exists
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload=res; s.onerror=rej; document.head.appendChild(s);
+  });
+  const wb=XLSX.read(buf,{type:"array"});
+  const sheet=wb.Sheets["Products"]||wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(sheet,{defval:""});
+  return rows.map(rowToProduct).filter(Boolean);
+}
+
+async function loadProducts(){
+  try{ PRODUCTS=await loadFromAPI(); dataSource="api"; return; }catch(e){}
+  try{ PRODUCTS=await loadFromSpreadsheet(); dataSource="sheet"; return; }catch(e){}
+  PRODUCTS=[]; dataSource="none";
+}
+let dataSource="none";
+
+/* ================================================================ */
+const $=id=>document.getElementById(id);
+const grid=$("grid"), navList=$("navList"), emptyMsg=$("empty"),
+      sectionTitle=$("sectionTitle"), sectionCount=$("sectionCount");
+
+let tab="foryou", activeCat="All", query="", priceMin=null, priceMax=null;
+
+/* click tracking (this device) */
+const CLICK_KEY="jws_clicks";
+function getClicks(){try{return JSON.parse(localStorage.getItem(CLICK_KEY))||{}}catch(e){return{}}}
+function trackClick(id){const c=getClicks();c[id]=(c[id]||0)+1;try{localStorage.setItem(CLICK_KEY,JSON.stringify(c))}catch(e){}}
+const realClicks=p=>getClicks()[p.id]||0;
+const score=p=>realClicks(p)*10+(p.boost||0);
+
+function withTag(url){
+  if(!url||url==="#"||!/amazon\./i.test(url)) return url;
+  if(/[?&]tag=/.test(url)) return url;
+  return url+(url.includes("?")?"&":"?")+"tag="+encodeURIComponent(AFFILIATE_TAG);
+}
+const discount=p=>(p.was&&p.price&&p.was>p.price)?Math.round((1-p.price/p.was)*100):0;
+function priceHTML(n){
+  const d=Math.floor(n), c=Math.round((n-d)*100);
+  return `<span class="price">$<b>${d}</b><sup>${String(c).padStart(2,"0")}</sup></span>`;
+}
+function starsHTML(r){
+  const full=Math.round(r);
+  return "★".repeat(Math.min(full,5))+"☆".repeat(Math.max(0,5-full));
+}
+
+function cardHTML(p){
+  const d=discount(p);
+  const frames=(p.images&&p.images.length)
+    ? p.images.map(src=>`<div class="frame"><img src="${src}" alt="${p.name}" loading="lazy"></div>`).join("")
+    : `<div class="frame"><img class="auto" src="images/${encodeURIComponent(p.id)}.jpg" alt="${p.name}" loading="lazy"></div>`;
+  const dots=(p.images&&p.images.length>1)
+    ? `<div class="dots">${p.images.map((_,i)=>`<i class="${i===0?"on":""}"></i>`).join("")}</div>`:"";
+  const pick = realClicks(p)>0 ? `<span class="hotpick">🔥 Popular</span>`
+             : (p.boost||0)>0 ? `<span class="hotpick">⭐ JWS Pick</span>` : "";
+  return `
+    <div class="gallery">${pick}<div class="frames">${frames}</div>${dots}</div>
+    <h4>${p.name}</h4>
+    ${p.rating?`<div class="stars"><span class="s">${starsHTML(p.rating)}</span> ${p.rating}${p.reviews?` <span class="n">(${p.reviews.toLocaleString()})</span>`:""}</div>`:""}
+    ${p.social?`<div class="social">${p.social}</div>`:""}
+    ${p.deal&&d?`<span class="dealbadge">Limited time deal</span>`:""}
+    ${p.price?`
+      <div class="price-row">${d?`<span class="pct">-${d}%</span>`:""}${priceHTML(p.price)}</div>
+      ${p.was?`<div class="rrp">RRP:<s>$${p.was.toFixed(2)}</s></div>`:""}
+      ${p.asof?`<div class="asof">As at ${p.asof} — see Amazon for today's price</div>`:""}`:""}
+    ${p.delivery?`<div class="delivery">${p.delivery.replace(/FREE delivery/,"<b>FREE delivery</b>")}</div>`:""}
+    <a class="buy" href="${withTag(p.url)}" rel="nofollow sponsored" target="_blank" data-id="${p.id}">View on Amazon</a>`;
+}
+
+function bindCard(el){
+  el.querySelectorAll("img.auto").forEach(img=>{
+    const fail=()=>{img.closest(".frame").innerHTML='<span class="ph">Photo coming soon</span>'};
+    img.onerror=fail;
+    if(img.complete&&img.naturalWidth===0) fail();
+  });
+  const frames=el.querySelector(".frames"), dots=el.querySelectorAll(".dots i");
+  if(frames&&dots.length){
+    frames.addEventListener("scroll",()=>{
+      const i=Math.round(frames.scrollLeft/frames.clientWidth);
+      dots.forEach((dd,j)=>dd.classList.toggle("on",j===i));
+    },{passive:true});
+  }
+  const buy=el.querySelector(".buy");
+  buy.addEventListener("click",()=>{trackClick(buy.dataset.id);setTimeout(render,400)});
+}
+
+function renderNav(){
+  const map={};PRODUCTS.forEach(p=>map[p.cat]=(map[p.cat]||0)+1);
+  navList.innerHTML="";
+  const mk=(label,count)=>{
+    const b=document.createElement("button");
+    b.innerHTML=`<span>${label}</span><span class="count">${count}</span>`;
+    if(label===activeCat)b.className="active";
+    b.onclick=()=>{activeCat=label;closeDrawer();render();window.scrollTo({top:0})};
+    return b;
+  };
+  navList.appendChild(mk("All",PRODUCTS.length));
+  Object.entries(map).forEach(([c,n])=>navList.appendChild(mk(c,n)));
+  document.getElementById("pillCat").classList.toggle("on",activeCat!=="All");
+  document.getElementById("pillCat").innerHTML = activeCat==="All" ? "☰ Categories" : "☰ "+activeCat;
+}
+
+function render(){
+  renderNav();
+  const q=query.trim().toLowerCase();
+  let items=PRODUCTS.filter(p=>
+    (activeCat==="All"||p.cat===activeCat)&&
+    (!q||(p.name+" "+p.cat).toLowerCase().includes(q))&&
+    (priceMin===null||(p.price!=null&&p.price>=priceMin&&p.price<priceMax)));
+  if(tab==="best"){
+    const scored=items.filter(p=>score(p)>0).sort((a,b)=>score(b)-score(a));
+    items=scored.length?scored:[...items].sort((a,b)=>(b.reviews||0)-(a.reviews||0));
+  }
+  else if(tab==="deals") items=items.filter(p=>discount(p)>0).sort((a,b)=>discount(b)-discount(a));
+  else if(tab==="new") items=[...items].reverse();
+  else items.sort((a,b)=>score(b)-score(a)); // For you: most-tapped floats up
+  const names={foryou:"For you",best:"Best Sellers",deals:"Deals",new:"New in"};
+  sectionTitle.textContent=q?`Results for “${query.trim()}”`:(activeCat!=="All"?activeCat:names[tab]);
+  sectionCount.textContent=items.length+(items.length===1?" product":" products");
+  grid.innerHTML="";emptyMsg.hidden=items.length>0;
+  if(items.length===0) emptyMsg.textContent="Nothing matches — try another search or clear the filters.";
+  items.forEach(p=>{
+    const c=document.createElement("article");
+    c.className="card";c.innerHTML=cardHTML(p);
+    grid.appendChild(c);bindCard(c);
+  });
+}
+
+/* tabs */
+document.querySelectorAll("#tabs button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");tab=b.dataset.tab;render();window.scrollTo({top:0});
+  };
+});
+
+/* drawer */
+const drawer=$("drawer"),drawerScrim=$("drawerScrim");
+function openDrawer(){drawer.classList.add("open");drawerScrim.classList.add("show")}
+function closeDrawer(){drawer.classList.remove("open");drawerScrim.classList.remove("show")}
+$("pillCat").onclick=openDrawer;$("navCats").onclick=openDrawer;drawerScrim.onclick=closeDrawer;
+
+/* price sheet */
+const sheet=$("priceSheet"),sheetScrim=$("sheetScrim");
+let pendMin=null,pendMax=null;
+$("pillPrice").onclick=()=>{sheet.classList.add("show");sheetScrim.classList.add("show")};
+function closeSheet(){sheet.classList.remove("show");sheetScrim.classList.remove("show")}
+$("sheetClose").onclick=closeSheet;sheetScrim.onclick=closeSheet;
+document.querySelectorAll("#priceOpts button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#priceOpts button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");pendMin=+b.dataset.min;pendMax=+b.dataset.max;
+  };
+});
+$("sheetApply").onclick=()=>{
+  priceMin=pendMin;priceMax=pendMax;
+  $("pillPrice").classList.toggle("on",priceMin!==null);closeSheet();render();
+};
+$("sheetClear").onclick=()=>{
+  pendMin=pendMax=priceMin=priceMax=null;
+  document.querySelectorAll("#priceOpts button").forEach(x=>x.classList.remove("on"));
+  $("pillPrice").classList.remove("on");closeSheet();render();
+};
+
+/* bottom nav */
+$("navDeals").onclick=()=>{document.querySelector('[data-tab="deals"]').click()};
+$("navTop").onclick=()=>{document.querySelector('[data-tab="best"]').click()};
+$("navSearch").onclick=()=>{window.scrollTo({top:0,behavior:"smooth"});setTimeout(()=>$("searchBox").focus(),350)};
+
+$("searchBox").addEventListener("input",e=>{query=e.target.value;render()});
+
+(async()=>{
+  emptyMsg.hidden=false;
+  emptyMsg.textContent="Loading the store…";
+  await loadProducts();
+  if(dataSource==="none"){
+    emptyMsg.innerHTML="<b>The shelves are being stocked.</b><br>New products land here soon — check back shortly.";
+    sectionCount.textContent="0 products";
+    return;
+  }
+  render();
+})();
+</script>
+</body>
+</html>
