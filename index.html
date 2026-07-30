@@ -71,6 +71,12 @@
     .card:hover{box-shadow:0 4px 14px rgba(15,17,17,.12)}
   }
   .ph{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#B8BCBC}
+  .tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;
+    background:linear-gradient(160deg,#F7F8F8 0%,#EEF1F1 60%,#E9ECEC 100%)}
+  .tile b{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#6b7070;text-align:center;padding:0 14px}
+  .tile i{width:34px;height:3px;border-radius:2px;background:var(--orange)}
+  .tile em{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.14em;color:#9aa0a0}
+  .tile em u{text-decoration:none;color:var(--orange)}
   .card{background:#fff;padding:12px 12px 16px;display:flex;flex-direction:column;position:relative}
   .gallery{position:relative;aspect-ratio:1/1;background:var(--panel);border-radius:8px;margin-bottom:10px;overflow:hidden}
   .frames{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
@@ -224,7 +230,7 @@ const AFFILIATE_TAG = "journeywith04-22";
      images   — ["images/a.jpg"]  (your OWN photos only — never saved
                                    from Amazon listings)
      icon     — emoji placeholder until you have a photo
-     boost    — 50             (manual head start; shows ⭐ JWS Pick)
+     boost    — 50             (manual head start in the sort; no badge shown)
    COMPLIANCE: ratings/social/prices must be real, current figures —
    update the asof date whenever you refresh them, or leave them out.
 ================================================================ */
@@ -330,11 +336,10 @@ function cardHTML(p){
   const d=discount(p);
   const frames=(p.images&&p.images.length)
     ? p.images.map(src=>`<div class="frame"><img src="${src}" alt="${p.name}" loading="lazy"></div>`).join("")
-    : `<div class="frame"><img class="auto" data-pid="${encodeURIComponent(p.id)}" data-i="0" src="images/${encodeURIComponent(p.id)}.jpg" alt="${p.name}" loading="lazy"></div>`;
+    : `<div class="frame"><img class="auto" data-pid="${encodeURIComponent(p.id)}" data-cat="${p.cat}" data-i="0" src="images/${encodeURIComponent(p.id)}.jpg" alt="${p.name}" loading="lazy"></div>`;
   const dots=(p.images&&p.images.length>1)
     ? `<div class="dots">${p.images.map((_,i)=>`<i class="${i===0?"on":""}"></i>`).join("")}</div>`:"";
-  const pick = realClicks(p)>0 ? `<span class="hotpick">🔥 Popular</span>`
-             : (p.boost||0)>0 ? `<span class="hotpick">⭐ JWS Pick</span>` : "";
+  const pick = realClicks(p)>0 ? `<span class="hotpick">🔥 Popular</span>` : "";
   return `
     <div class="gallery">${pick}<div class="frames">${frames}</div>${dots}</div>
     <h4>${p.name}</h4>
@@ -366,7 +371,7 @@ function bindCard(el){
         img.dataset.i=i;
         img.src="images/"+pid+"."+AUTO_EXTS[i];
       }else{
-        img.closest(".frame").innerHTML='<span class="ph">Photo coming soon</span>';
+        img.closest(".frame").innerHTML='<span class="tile"><b>'+(img.dataset.cat||"JWS")+'</b><i></i><em>JWS<u>store</u></em></span>';
       }
     };
     const refreshDots=()=>{
