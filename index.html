@@ -33,6 +33,25 @@
   .search input:focus{outline:none}
   .search button{background:none;border:none;padding:0 14px;font-size:16px}
 
+  /* ---------- BRAND HERO ---------- */
+  .brandhero{
+    background:linear-gradient(115deg,var(--navy) 0%,var(--navy2) 70%,#2E3D50 100%);
+    border-bottom:3px solid var(--orange);
+    display:flex;align-items:center;gap:16px;
+    padding:20px 16px;
+  }
+  .brandhero img{
+    width:72px;height:72px;object-fit:contain;border-radius:14px;
+    background:rgba(255,255,255,.06);padding:6px;flex-shrink:0;
+  }
+  .brandhero-text h1{color:#fff;font-size:clamp(22px,5vw,30px);font-weight:800;line-height:1.1}
+  .brandhero-text h1 span{color:var(--orange)}
+  .brandhero-text p{color:#C8CDD3;font-size:13.5px;margin-top:4px;max-width:52ch}
+  @media(min-width:760px){
+    .brandhero{padding:26px 20px;justify-content:center;text-align:left}
+    .brandhero img{width:84px;height:84px}
+  }
+
   /* ---------- TABS ---------- */
   .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:56px;z-index:55;overflow-x:auto;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
@@ -145,12 +164,20 @@
 <body>
 
 <header class="topbar">
-  <div class="logo"><img src="https://cdn.jsdelivr.net/gh/Parro95/jws-assets/logo.png" alt="" onerror="this.style.display='none'" style="height:26px;width:26px;object-fit:contain;border-radius:6px;vertical-align:-6px;margin-right:6px">JWS<span>store</span></div>
+  <div class="logo">JWS<span>store</span></div>
   <div class="search">
     <input type="search" id="searchBox" placeholder="Search JWSstore" aria-label="Search products">
     <button aria-label="Search">🔍</button>
   </div>
 </header>
+
+<section class="brandhero">
+  <img src="https://cdn.jsdelivr.net/gh/Parro95/jws-assets/logo.png" alt="Journey With Shannon emblem" onerror="this.style.display='none'">
+  <div class="brandhero-text">
+    <h1>JWS<span>store</span></h1>
+    <p>Journey With Shannon's product library — tap any product to shop it on Amazon.</p>
+  </div>
+</section>
 
 <nav class="tabs" id="tabs" aria-label="Browse">
   <button data-tab="foryou" class="on">For you</button>
