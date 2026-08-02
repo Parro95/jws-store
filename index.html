@@ -553,6 +553,8 @@ function renderNav(){
 
 function renderTopSellers(){
   const row=document.getElementById("tsrow"), head=document.getElementById("tsHead");
+  const active = tab==="foryou" && !query.trim() && activeCat==="All" && priceMin===null;
+  if(!active){ head.hidden=true; row.innerHTML=""; return; }
   const top=[...PRODUCTS].filter(p=>(p.reviews||0)>0).sort((a,b)=>b.reviews-a.reviews).slice(0,8);
   head.hidden=top.length<3; row.innerHTML="";
   if(top.length<3) return;
@@ -568,7 +570,7 @@ function render(){
   const q=query.trim().toLowerCase();
   let items=PRODUCTS.filter(p=>
     (activeCat==="All"||p.cat===activeCat)&&
-    (!q||(p.name+" "+p.cat).toLowerCase().includes(q))&&
+    (!q||(p.name+" "+(p.note||"")+" "+p.cat).toLowerCase().includes(q))&&
     (priceMin===null||(p.price!=null&&p.price>=priceMin&&p.price<priceMax)));
   if(tab==="best"){
     items=[...items].sort((a,b)=>(b.reviews||0)-(a.reviews||0)||score(b)-score(a));
@@ -578,9 +580,14 @@ function render(){
   else items.sort((a,b)=>score(b)-score(a)); // For you: most-tapped floats up
   const names={foryou:"For you",best:"Best Sellers",deals:"Deals",new:"New in"};
   sectionTitle.textContent=q?`Results for “${query.trim()}”`:(activeCat!=="All"?activeCat:names[tab]);
-  sectionCount.textContent=items.length+(items.length===1?" product":" products");
+  sectionCount.textContent=items.length+(items.length===1?" product":" products")+(priceMin!==null?" · price filter on (only priced items shown)":"");
   grid.innerHTML="";emptyMsg.hidden=items.length>0;
-  if(items.length===0) emptyMsg.textContent="Nothing matches — try another search or clear the filters.";
+  if(items.length===0){
+    emptyMsg.textContent =
+      tab==="deals" ? "No deals running right now — check back soon, or browse everything in For you."
+      : priceMin!==null ? "No products with a listed price in that range — clear the Price filter to see the full range."
+      : "Nothing matches — try another search or pick a different category.";
+  }
   items.forEach(p=>{
     const c=document.createElement("article");
     c.className="card";c.innerHTML=cardHTML(p);
