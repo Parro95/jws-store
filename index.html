@@ -85,6 +85,23 @@
   .capture-form button:hover{background:var(--orange-dark);color:#fff}
   .capture-msg{width:100%;color:#E8D9A0;font-size:13px;min-height:16px;margin-top:2px}
 
+  .hotpick.bs{background:var(--orange);color:var(--navy)}
+  .hotpick.tr{background:#0F7B6C;color:#fff}
+  /* category chips */
+  .chips{display:flex;gap:8px;padding:8px 12px 4px;overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{background:#fff;border:1px solid var(--line);border-radius:18px;padding:7px 14px;font-size:13px;white-space:nowrap;color:var(--ink)}
+  .chips button.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+  /* top sellers strip */
+  .ts-head{display:flex;align-items:baseline;justify-content:space-between;padding:14px 12px 6px;max-width:1220px;margin:0 auto}
+  .ts-head h2{font-size:17px;font-weight:800}
+  .ts-head h2 span{color:var(--orange-dark)}
+  .ts-head small{font-size:12px;color:var(--muted)}
+  .tsrow{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 12px 10px;scrollbar-width:none;max-width:1220px;margin:0 auto}
+  .tsrow::-webkit-scrollbar{display:none}
+  .tsrow .slide{scroll-snap-align:start;flex:0 0 168px}
+  @media(min-width:600px){.tsrow .slide{flex-basis:200px}}
+  .tsrow .card{height:100%;border:1px solid var(--line);border-radius:8px}
   /* ---------- TABS ---------- */
   .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:56px;z-index:55;overflow-x:auto;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
@@ -251,8 +268,13 @@
   <button class="clear" id="sheetClear">Clear filters</button>
 </div>
 
+<div class="chips" id="chips" aria-label="Quick categories"></div>
+
 <div class="gridwrap">
 <p class="disclosure">As an Amazon Associate I earn from qualifying purchases.</p>
+
+<div class="ts-head" id="tsHead" hidden><h2>⭐ <span>Top sellers</span></h2><small>Most-reviewed on Amazon</small></div>
+<div class="tsrow" id="tsrow"></div>
 
 <div class="section-head">
   <h2 id="sectionTitle">For you</h2>
@@ -344,6 +366,7 @@ function rowToProduct(r){
     price:r.price!==""&&r.price!=null?parseFloat(r.price):null,
     was:r.was!==""&&r.was!=null?parseFloat(r.was):null,
     asof:asofText(r.asof), delivery:r.delivery||"",
+    commission:(()=>{let c=(r.Commission??r.commission);c=(c===""||c==null)?0:parseFloat(c);if(isNaN(c))return 0;return c>1?c/100:c;})(),
     images:images.length?images:null, icon:r.icon||"📦",
     boost:r.boost?parseInt(r.boost):0
   };
@@ -378,6 +401,11 @@ async function loadProducts(){
   PRODUCTS=[]; dataSource="none";
 }
 let dataSource="none";
+let BEST_IDS=new Set();
+function computeBest(){
+  BEST_IDS=new Set([...PRODUCTS].filter(p=>(p.reviews||0)>0)
+    .sort((a,b)=>b.reviews-a.reviews).slice(0,5).map(p=>p.id));
+}
 
 /* ================================================================ */
 const $=id=>document.getElementById(id);
@@ -391,7 +419,7 @@ const CLICK_KEY="jws_clicks";
 function getClicks(){try{return JSON.parse(localStorage.getItem(CLICK_KEY))||{}}catch(e){return{}}}
 function trackClick(id){const c=getClicks();c[id]=(c[id]||0)+1;try{localStorage.setItem(CLICK_KEY,JSON.stringify(c))}catch(e){}}
 const realClicks=p=>getClicks()[p.id]||0;
-const score=p=>realClicks(p)*10+(p.boost||0);
+const score=p=>realClicks(p)*10+(p.boost||0)+Math.round((p.commission||0)*600)+Math.round(Math.log10((p.reviews||0)+1)*6);
 
 function withTag(url){
   if(!url||url==="#"||!/amazon\./i.test(url)) return url;
@@ -415,7 +443,9 @@ function cardHTML(p){
     : `<div class="frame"><img class="auto" data-pid="${encodeURIComponent(p.id)}" data-cat="${p.cat}" data-i="0" src="images/${encodeURIComponent(p.id)}.jpg" alt="${p.name}" loading="lazy"></div>`;
   const dots=(p.images&&p.images.length>1)
     ? `<div class="dots">${p.images.map((_,i)=>`<i class="${i===0?"on":""}"></i>`).join("")}</div>`:"";
-  const pick = realClicks(p)>0 ? `<span class="hotpick">🔥 Popular</span>` : "";
+  const pick = realClicks(p)>0 ? `<span class="hotpick">🔥 Popular</span>`
+             : BEST_IDS.has(p.id) ? `<span class="hotpick bs">⭐ Best Seller</span>`
+             : (p.rating&&p.rating>=4.7) ? `<span class="hotpick tr">Top Rated</span>` : "";
   return `
     <div class="gallery">${pick}<div class="frames">${frames}</div>${dots}</div>
     <h4>${p.name}</h4>
@@ -509,20 +539,38 @@ function renderNav(){
   };
   navList.appendChild(mk("All",PRODUCTS.length));
   Object.entries(map).forEach(([c,n])=>navList.appendChild(mk(c,n)));
+  const chips=document.getElementById("chips");
+  chips.innerHTML="";
+  const chip=(label)=>{const b=document.createElement("button");b.textContent=label;
+    if(label===activeCat)b.className="on";
+    b.onclick=()=>{activeCat=label;render();window.scrollTo({top:0})};return b;};
+  chips.appendChild(chip("All"));
+  Object.keys(map).forEach(c=>chips.appendChild(chip(c)));
   document.getElementById("pillCat").classList.toggle("on",activeCat!=="All");
   document.getElementById("pillCat").innerHTML = activeCat==="All" ? "☰ Categories" : "☰ "+activeCat;
 }
 
+function renderTopSellers(){
+  const row=document.getElementById("tsrow"), head=document.getElementById("tsHead");
+  const top=[...PRODUCTS].filter(p=>(p.reviews||0)>0).sort((a,b)=>b.reviews-a.reviews).slice(0,8);
+  head.hidden=top.length<3; row.innerHTML="";
+  if(top.length<3) return;
+  top.forEach(p=>{
+    const s=document.createElement("div"); s.className="slide";
+    const c=document.createElement("article"); c.className="card"; c.innerHTML=cardHTML(p);
+    s.appendChild(c); row.appendChild(s); bindCard(c);
+  });
+}
 function render(){
   renderNav();
+  renderTopSellers();
   const q=query.trim().toLowerCase();
   let items=PRODUCTS.filter(p=>
     (activeCat==="All"||p.cat===activeCat)&&
     (!q||(p.name+" "+p.cat).toLowerCase().includes(q))&&
     (priceMin===null||(p.price!=null&&p.price>=priceMin&&p.price<priceMax)));
   if(tab==="best"){
-    const scored=items.filter(p=>score(p)>0).sort((a,b)=>score(b)-score(a));
-    items=scored.length?scored:[...items].sort((a,b)=>(b.reviews||0)-(a.reviews||0));
+    items=[...items].sort((a,b)=>(b.reviews||0)-(a.reviews||0)||score(b)-score(a));
   }
   else if(tab==="deals") items=items.filter(p=>discount(p)>0).sort((a,b)=>discount(b)-discount(a));
   else if(tab==="new") items=[...items].reverse();
@@ -586,6 +634,7 @@ $("searchBox").addEventListener("input",e=>{query=e.target.value;render()});
   emptyMsg.hidden=false;
   emptyMsg.textContent="Loading the store…";
   await loadProducts();
+  computeBest();
   if(dataSource==="none"){
     emptyMsg.innerHTML="<b>The shelves are being stocked.</b><br>New products land here soon — check back shortly.";
     sectionCount.textContent="0 products";
